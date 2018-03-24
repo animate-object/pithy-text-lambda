@@ -13,7 +13,9 @@ def lambda_handler(event, context):
         'body': dumps(get_random_text(table)),
         'isBase64Encoded': False,
         'statusCode': 200,
-        'headers': {}
+        'headers': {
+            'Access-Control-Allow-Origin': '*'    
+        }
     }
 
 def get_random_text(table, retry_id=None):
