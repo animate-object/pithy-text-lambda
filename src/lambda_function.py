@@ -5,18 +5,32 @@ import logging
 from uuid import uuid4
 from json import dumps
 
+
+RESPONSE_TEMPLATE = {
+    'isBase64Encoded': False,
+    'statusCode': 200,
+    'headers': { 'Access-Control-Allow-Origin': '*' }
+}
+
+
 def lambda_handler(event, context):
-    logging.debug('connecting to dynamo')
-    dy = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dy.Table('pithy-text')
-    return {
-        'body': dumps(get_random_text(table)),
-        'isBase64Encoded': False,
-        'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Origin': '*'    
+    try:
+        logging.debug('connecting to dynamo')
+        dy = boto3.resource('dynamodb', region_name='us-east-1')
+        table = dy.Table('pithy-text')
+        response = RESPONSE_TEMPLATE.update({'body': dumps(get_random_text(table))})
+    except LambdaException as l:
+        return {
+            'functionError': l.message,
+            'statusCode': l.status_code
         }
-    }
+    except Exception as e:
+        logging.exception('Lambda failed unexpectedly')
+        return {
+            'functionError': 'Service failed unexpectedly',
+            'statusCode': 500
+        }
+
 
 def get_random_text(table, retry_id=None):
     """Get a random entry from the pithy texst table, single retry
@@ -31,10 +45,14 @@ def get_random_text(table, retry_id=None):
 
     except IndexError:
         if retry_id:
-            return {'Status': 404, 'FunctionError': 'Nothing to say :('}
+            raise LambdaException('No pithy text found', 404) 
         else:
             logging.info('Missed random entry, retrying')
             return get_random_text(table, retry_id=random_uuid)
-    except ClientError as ce:
-        logging.exception('Uh oh')
-        return {'Status': 500, 'FunctionError': 'Something went wrong'}
+
+
+class LambdaException(Exception):
+    def __init__(self, message, status_code):
+        super(LambdaException, self).__init__(message)
+        self.status_code = status_code
+
