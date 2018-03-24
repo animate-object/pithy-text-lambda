@@ -9,7 +9,7 @@ pip install -Ur dev-requirements.txt
 
 echo "Running tests"
 
-pytest -v test/
+pytest -vv test/
 
 echo "Tearing down test environment"
 
