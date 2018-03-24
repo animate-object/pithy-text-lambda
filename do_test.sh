@@ -11,7 +11,15 @@ cleanup() {
     hr
     deactivate
     rm -rf testenv
-    [ $exit_code -eq 0 ] & echo Test run successful & hr
+    if [ $exit_code -eq 0 ]; then
+        hr
+        echo Test run successful 
+        hr
+    else
+        hr
+        echo Some tests failed! See above.
+        hr
+    fi
     exit $exit_code
 }
 
