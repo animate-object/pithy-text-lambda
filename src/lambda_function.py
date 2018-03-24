@@ -6,23 +6,21 @@ from uuid import uuid4
 from json import dumps
 
 
-RESPONSE_TEMPLATE = {
-    'isBase64Encoded': False,
-    'statusCode': 200,
-    'headers': { 'Access-Control-Allow-Origin': '*' }
-}
-
-
 def lambda_handler(event, context):
     try:
         logging.debug('connecting to dynamo')
         dy = boto3.resource('dynamodb', region_name='us-east-1')
         table = dy.Table('pithy-text')
-        response = RESPONSE_TEMPLATE.update({'body': dumps(get_random_text(table))})
-    except LambdaException as l:
         return {
-            'functionError': l.message,
-            'statusCode': l.status_code
+            'isBase64Encoded': False,
+            'statusCode': 200,
+            'headers': { 'Access-Control-Allow-Origin': '*' },
+            'body': dumps(get_random_text(table))
+        }
+    except LambdaException as le:
+        return {
+            'functionError': le.args[0],
+            'statusCode': le.status_code
         }
     except Exception as e:
         logging.exception('Lambda failed unexpectedly')
