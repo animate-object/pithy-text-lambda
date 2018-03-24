@@ -15,7 +15,11 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'headers': {}
     }
+
 def get_random_text(table, retry_id=None):
+    """Get a random entry from the pithy texst table, single retry
+    Leverage sort key conditions to get nearest key to a random uuid
+    """
     try:
         random_uuid = str(uuid4()) if not retry_id else retry_id
         hk_condition = Key('ph').eq(0)  # for now we are only leverageing sort key to randomize our selection
