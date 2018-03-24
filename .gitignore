@@ -1,3 +1,7 @@
 build/
 venv/
 build.zip
+
+__pycache__/
+*.py[cod]
+
